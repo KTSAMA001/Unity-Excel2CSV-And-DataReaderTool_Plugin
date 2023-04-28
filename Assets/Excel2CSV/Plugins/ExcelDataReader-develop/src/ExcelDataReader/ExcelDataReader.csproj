@@ -1,0 +1,13 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Description>Lightweight and fast library written in C# for reading Microsoft Excel files (XLS, XLSX).</Description>
+    <AssemblyTitle>ExcelDataReader</AssemblyTitle>
+    <AssemblyName>ExcelDataReader</AssemblyName>
+    <PackageId>ExcelDataReader</PackageId>
+  </PropertyGroup>
+
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net462' ">
+    <Reference Include="System.IO.Compression" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,14 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Description>ExcelDataReader extension for reading Microsoft Excel files into System.Data.DataSet.</Description>
+    <AssemblyTitle>ExcelDataReader.DataSet</AssemblyTitle>
+    <AssemblyName>ExcelDataReader.DataSet</AssemblyName>
+    <PackageId>ExcelDataReader.DataSet</PackageId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ExcelDataReader\ExcelDataReader.csproj" />
+  </ItemGroup>
+
+</Project>
