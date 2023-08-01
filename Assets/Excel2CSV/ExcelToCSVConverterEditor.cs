@@ -9,10 +9,8 @@ using System.Collections.Generic;
 using System.Text;
 using System;
 using System.Text.RegularExpressions;
-using System.Collections;
-using System.Threading;
 
-public class ExcelToCSVConverter : EditorWindow
+public class ExcelToCSVConverterEditor : EditorWindow
 {
     const string excelFolderPath = "Assets/Excel2CSV/Excel";
     const string csvFolderPath = "Assets/Excel2CSV/Resources/CSV";
@@ -25,20 +23,31 @@ public class ExcelToCSVConverter : EditorWindow
         // 选择Excel文件夹
         // string excelFolderPath = EditorUtility.OpenFolderPanel("Select Excel Folder", "", "");
 
-        if (string.IsNullOrEmpty(excelFolderPath))
+        
+        //如果excel文件夹不存在，则创建一个，然后判断是否为空，为空则报告
+        if (!Directory.Exists(excelFolderPath))
         {
-            Debug.LogWarning("Excel folder path is empty.");
+            Directory.CreateDirectory(excelFolderPath);
+        }
+        if (Directory.GetFiles(excelFolderPath).Length == 0)
+        {
+            Debug.LogError("Excel文件夹为空，请检查！");
             return;
         }
-
         // 选择CSV文件夹
         //  string csvFolderPath = EditorUtility.OpenFolderPanel("Select CSV Folder", "", "");
-
-        if (string.IsNullOrEmpty(csvFolderPath))
+        //如果文件夹不存在就生成文件夹
+        if (!Directory.Exists(csvFolderPath))
         {
-            Debug.LogWarning("CSV folder path is empty.");
-            return;
+            Directory.CreateDirectory(csvFolderPath);
         }
+        if (!Directory.Exists(csFolderPath))
+        {
+            Directory.CreateDirectory(csFolderPath);
+        }
+        //Unity编辑器文件刷新
+        AssetDatabase.Refresh();
+       
         // 遍历Excel文件夹中的所有Excel文件
         foreach (string excelFilePath in Directory.GetFiles(excelFolderPath, "*.xlsx"))
         {
@@ -165,41 +174,44 @@ public class ExcelToCSVConverter : EditorWindow
         var sb = new StringBuilder();
         sb.AppendLine($"using System;");
         sb.AppendLine($"using System.Collections.Generic;");
-        sb.AppendLine($"using System.IO;");
         sb.AppendLine($"using UnityEngine;");
         sb.AppendLine($"namespace {namespaceName}");
         sb.AppendLine("{");
         sb.AppendLine($"\tpublic class {className}:CSVBase");
         sb.AppendLine("\t{");
-        sb.AppendLine($"\t\tpublic static string filePath=\"{csvFilePath}\";");
         for (int i = 0; i < columnNameList.Length; i++)
         {
             var columnName = columnNameList[i];
             var fieldName = char.ToUpper(columnName[0]) + columnName.Substring(1);
-            sb.AppendLine($"\t\tpublic string {fieldName} {{ get; private set; }}");
+            sb.AppendLine($"\t\tpublic string {fieldName} {{ get;  set; }}");
         }
-        sb.AppendLine();
-
-        sb.AppendLine("\t\t public static Dictionary<string, " + className + $"> Load(string csvFilePath=" + "\"" + $"{csvFilePath}" + "\")");
+        sb.AppendLine("\t}");
+        sb.AppendLine($"\tpublic class {className}Load");
+        sb.AppendLine("\t{");
+        sb.AppendLine($"\t\tpublic static {className} {className.ToLower()}=new {className}();");
+        sb.AppendLine($"\t\tstatic string filePath = \"CSV/{className.Replace("CSV","")}\";");
+        sb.AppendLine($"\t\tpublic static {className} Load(string id)");
         sb.AppendLine("\t\t{");
-        sb.AppendLine("\t\t\t var csvTextAsset = Resources.Load<TextAsset>(csvFilePath);");
-        sb.AppendLine("\t\t\t var csvData = csvTextAsset.text;");
-        sb.AppendLine("\t\t\t var csvRows = csvData.Split(new char[] { '\\r', '\\n' }, StringSplitOptions.RemoveEmptyEntries);");
-        sb.AppendLine("\t\t\t var result = new Dictionary<string, " + className + ">();");
-        sb.AppendLine("\t\t\t//列表的第一项数据默认为列标题");
+        sb.AppendLine("\t\t\tvar csvTextAsset = Resources.Load<TextAsset>(filePath);");
+        sb.AppendLine("\t\t\tvar csvData = csvTextAsset.text;");
+        sb.AppendLine("\t\t\tvar csvRows = csvData.Split(new char[] { '\\r', '\\n' }, StringSplitOptions.RemoveEmptyEntries);");
+        sb.AppendLine("\t\t\t//判断哪一行的id与key相匹配");
         sb.AppendLine("\t\t\tfor (int i = 1; i < csvRows.Length; i++)");
         sb.AppendLine("\t\t\t{");
         sb.AppendLine($"\t\t\t\tvar row = csvRows[i].Split(',');");
-        sb.AppendLine($"\t\t\t\tvar obj = new {className}();");
+        sb.AppendLine("\t\t\t\tif (row[0] == id)");
+        sb.AppendLine("\t\t\t\t{");
+        sb.AppendLine("\t\t\t\t\t//将这一行赋给heroCSV");
         for (int j = 0; j < columnNameList.Length; j++)
         {
             var columnName = columnNameList[j];
             var fieldName = char.ToUpper(columnName[0]) + columnName.Substring(1);
-            sb.AppendLine($"\t\t\t\tobj.{fieldName} = row[{j}];");
+            sb.AppendLine($"\t\t\t\t{className.ToLower()}.{fieldName} = row[{j}];");
         }
-        sb.AppendLine("\t\t\t\tresult.Add(obj.ID,obj);");
+        sb.AppendLine("\t\t\t\tbreak;");
+        sb.AppendLine("\t\t\t\t}");
         sb.AppendLine("\t\t\t}");
-        sb.AppendLine("\t\t\treturn result;");
+        sb.AppendLine($"\t\t\treturn {className.ToLower()};");
         sb.AppendLine("\t\t}");
 
         sb.AppendLine("\t}");
