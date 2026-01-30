@@ -4,44 +4,142 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
 using UnityEngine;
-public static  class CSVReader
+
+public static class CSVReader
 {
+    // åå°„ç¼“å­˜ï¼Œæé«˜æ€§èƒ½
+    private static Dictionary<string, Type> typeCache = new Dictionary<string, Type>();
+    private static Dictionary<string, MethodInfo> methodCache = new Dictionary<string, MethodInfo>();
+    private static Dictionary<string, PropertyInfo> propertyCache = new Dictionary<string, PropertyInfo>();
+
     /// <summary>
-    /// Í¨ÓÃµÄÊı¾İ¶ÁÈ¡·½·¨
+    /// é€šç”¨çš„æ•°æ®è¯»å–æ–¹æ³•
     /// </summary>
-    /// <param name="typeName">ÀàĞÍÃû³Æ£¬ÀıÈç HeroCSV£¨×Ô¶¯Éú³ÉµÄ½Å±¾ÀàĞÍ£¬Excel±í¸ñµÄÃû×Ö+CSV£©</param>
-    /// <param name="id">²éÕÒµÄÊı¾İµÄIDÖµ</param>
-    /// <param name="key">²éÕÒµÄÊı¾İµÄ×Ö¶Î</param>
+    /// <param name="typeName">ç±»å‹åç§°ï¼Œä¾‹å¦‚ï¼šHeroCSVï¼ˆè‡ªåŠ¨ç”Ÿæˆçš„è„šæœ¬ç±»å‹ï¼ŒExcelè¡¨åç§°+CSVï¼‰</param>
+    /// <param name="id">è¦æŸ¥æ‰¾çš„æ•°æ®çš„IDå€¼</param>
+    /// <param name="key">è¦æŸ¥æ‰¾çš„æ•°æ®çš„å­—æ®µ</param>
     /// <returns></returns>
-    public static object ReadDataRow(string typeName,string id,string key)
+    public static object ReadDataRow(string typeName, string id, string key)
     {
-        typeName = "CSV_SPACE." + typeName;
-       Type typeCSV= Type.GetType(typeName);
-       Type typeCSVLoad = Type.GetType(typeName+"Load");
-        //Í¨¹ı»ò·´ÉäÖ±½Óµ÷ÓÃ¾²Ì¬µÄ¼ÓÔØº¯Êı£¬ÒòÎªÕû¸ö¹¤¾ß¿ÉÄÜÓÃÓÚÈÈ¸üĞÂ£¬ËùÒÔ²ÉÓÃ·´ÉäµÄ·½Ê½
-        //Èç¹ûÏîÄ¿²»»áÊ¹ÓÃÈÈ¸üĞÂ£¬¿ÉÒÔ³¢ÊÔÆÕÍ¨µÄµ÷ÓÃ,ÀıÈçÏÂÃæµÄ´úÂë
-        //Debug.Log(HeroCSVLoad.Load(id).Name);
-        object obj = typeCSVLoad.GetMethod("Load").Invoke(null, new object[] { id });
-       
-     
-        if (obj==null)
+        try
         {
-
-            Debug.LogError($"{typeName + "Load"}Ã»ÓĞÕÒµ½¶ÔÓ¦µÄÊı¾İ");
+            typeName = "CSV_SPACE." + typeName;
+            
+            // ä½¿ç”¨ç¼“å­˜è·å–ç±»å‹
+            Type typeCSV = GetTypeFromCache(typeName);
+            Type typeCSVLoad = GetTypeFromCache(typeName + "Load");
+            
+            if (typeCSV == null || typeCSVLoad == null)
+            {
+                Debug.LogError($"æ— æ³•æ‰¾åˆ°ç±»å‹ {typeName} æˆ– {typeName}Loadï¼Œè¯·ç¡®ä¿å·²ç”Ÿæˆå¯¹åº”çš„CSVè„šæœ¬ã€‚");
+                return null;
+            }
+            
+            // ä½¿ç”¨ç¼“å­˜è·å–Loadæ–¹æ³•
+            MethodInfo loadMethod = GetMethodFromCache(typeCSVLoad, "Load");
+            if (loadMethod == null)
+            {
+                Debug.LogError($"{typeName}Load ç±»ä¸­æ²¡æœ‰æ‰¾åˆ° Load æ–¹æ³•ã€‚");
+                return null;
+            }
+            
+            // é€šè¿‡åå°„è°ƒç”¨é™æ€çš„Loadæ–¹æ³•
+            object obj = loadMethod.Invoke(null, new object[] { id });
+            
+            if (obj == null)
+            {
+                Debug.LogWarning($"{typeName}Load.Load(\"{id}\") è¿”å›äº† nullï¼Œå¯èƒ½æ˜¯IDä¸å­˜åœ¨ã€‚");
+                return null;
+            }
+            
+            // ä½¿ç”¨ç¼“å­˜è·å–å±æ€§
+            PropertyInfo property = GetPropertyFromCache(typeCSV, key);
+            if (property == null)
+            {
+                Debug.LogError($"ç±»å‹ {typeName} ä¸­ä¸å­˜åœ¨å­—æ®µ {key}ï¼Œè¯·æ£€æŸ¥CSVè¡¨å¤´æ˜¯å¦æ­£ç¡®ã€‚");
+                return null;
+            }
+            
+            return property.GetValue(obj);
+        }
+        catch (Exception ex)
+        {
+            Debug.LogError($"è¯»å–æ•°æ®å¤±è´¥: ç±»å‹={typeName}, ID={id}, å­—æ®µ={key}\né”™è¯¯: {ex.Message}\nå †æ ˆ: {ex.StackTrace}");
             return null;
         }
-   
-    try
-        {
-            return typeCSV.GetProperty(key).GetValue(obj);
-        }
-        catch 
-        {
-            Debug.LogError($"Çë¼ì²é{typeName}ÖĞÊÇ·ñ´æÔÚ{key}×Ö¶Î£¡");
-            return null;
-        }
-
     }
-  
+    
+    /// <summary>
+    /// æ³›å‹ç‰ˆæœ¬çš„æ•°æ®è¯»å–æ–¹æ³•
+    /// </summary>
+    public static T ReadDataRow<T>(string typeName, string id, string key)
+    {
+        object result = ReadDataRow(typeName, id, key);
+        if (result == null)
+            return default(T);
+            
+        try
+        {
+            return (T)result;
+        }
+        catch (InvalidCastException ex)
+        {
+            Debug.LogError($"ç±»å‹è½¬æ¢å¤±è´¥: æ— æ³•å°† {result.GetType()} è½¬æ¢ä¸º {typeof(T)}\né”™è¯¯: {ex.Message}");
+            return default(T);
+        }
+    }
+    
+    // ç¼“å­˜è¾…åŠ©æ–¹æ³•
+    private static Type GetTypeFromCache(string typeName)
+    {
+        if (!typeCache.TryGetValue(typeName, out Type type))
+        {
+            type = Type.GetType(typeName);
+            if (type != null)
+            {
+                typeCache[typeName] = type;
+            }
+        }
+        return type;
+    }
+    
+    private static MethodInfo GetMethodFromCache(Type type, string methodName)
+    {
+        string key = type.FullName + "." + methodName;
+        if (!methodCache.TryGetValue(key, out MethodInfo method))
+        {
+            method = type.GetMethod(methodName);
+            if (method != null)
+            {
+                methodCache[key] = method;
+            }
+        }
+        return method;
+    }
+    
+    private static PropertyInfo GetPropertyFromCache(Type type, string propertyName)
+    {
+        string key = type.FullName + "." + propertyName;
+        if (!propertyCache.TryGetValue(key, out PropertyInfo property))
+        {
+            property = type.GetProperty(propertyName);
+            if (property != null)
+            {
+                propertyCache[key] = property;
+            }
+        }
+        return property;
+    }
+    
+    /// <summary>
+    /// æ¸…é™¤åå°„ç¼“å­˜ï¼ˆç”¨äºé‡æ–°åŠ è½½æˆ–æ›´æ–°ï¼‰
+    /// </summary>
+    public static void ClearCache()
+    {
+        typeCache.Clear();
+        methodCache.Clear();
+        propertyCache.Clear();
+    }
 }

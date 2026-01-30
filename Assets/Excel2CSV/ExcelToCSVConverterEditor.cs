@@ -20,23 +20,23 @@ public class ExcelToCSVConverterEditor : EditorWindow
     [MenuItem("KT CSV Tools/Convert Excel to CSV", priority = 5)]
     public static void  ConvertExcelToCSV()
     {
-        // Ñ¡ÔñExcelÎÄ¼ş¼Ğ
+        // é€‰æ‹©Excelæ–‡ä»¶å¤¹
         // string excelFolderPath = EditorUtility.OpenFolderPanel("Select Excel Folder", "", "");
 
         
-        //Èç¹ûexcelÎÄ¼ş¼Ğ²»´æÔÚ£¬Ôò´´½¨Ò»¸ö£¬È»ºóÅĞ¶ÏÊÇ·ñÎª¿Õ£¬Îª¿ÕÔò±¨¸æ
+        // å¦‚æœexcelæ–‡ä»¶å¤¹ä¸å­˜åœ¨ï¼Œå°±åˆ›å»ºä¸€ä¸ªï¼Œç„¶ååˆ¤æ–­æ˜¯å¦ä¸ºç©ºï¼Œä¸ºç©ºå°±æŠ¥å‘Š
         if (!Directory.Exists(excelFolderPath))
         {
             Directory.CreateDirectory(excelFolderPath);
         }
         if (Directory.GetFiles(excelFolderPath).Length == 0)
         {
-            Debug.LogError("ExcelÎÄ¼ş¼ĞÎª¿Õ£¬Çë¼ì²é£¡");
+            Debug.LogError("Excelæ–‡ä»¶å¤¹ä¸ºç©ºï¼Œè¯·æ·»åŠ ï¼");
             return;
         }
-        // Ñ¡ÔñCSVÎÄ¼ş¼Ğ
+        // é€‰æ‹©CSVæ–‡ä»¶å¤¹
         //  string csvFolderPath = EditorUtility.OpenFolderPanel("Select CSV Folder", "", "");
-        //Èç¹ûÎÄ¼ş¼Ğ²»´æÔÚ¾ÍÉú³ÉÎÄ¼ş¼Ğ
+        // å¦‚æœæ–‡ä»¶å¤¹ä¸å­˜åœ¨å°±åˆ›å»ºæ–‡ä»¶å¤¹
         if (!Directory.Exists(csvFolderPath))
         {
             Directory.CreateDirectory(csvFolderPath);
@@ -45,32 +45,42 @@ public class ExcelToCSVConverterEditor : EditorWindow
         {
             Directory.CreateDirectory(csFolderPath);
         }
-        //Unity±à¼­Æ÷ÎÄ¼şË¢ĞÂ
-        AssetDatabase.Refresh();
        
-        // ±éÀúExcelÎÄ¼ş¼ĞÖĞµÄËùÓĞExcelÎÄ¼ş
+        int successCount = 0;
+        int failCount = 0;
+        
+        // éå†Excelæ–‡ä»¶å¤¹ä¸­çš„æ‰€æœ‰Excelæ–‡ä»¶
         foreach (string excelFilePath in Directory.GetFiles(excelFolderPath, "*.xlsx"))
         {
-            // »ñÈ¡CSVÎÄ¼şÃû
-            string csvFileName = Path.GetFileNameWithoutExtension(excelFilePath) + ".csv";
+            try
+            {
+                // è·å–CSVæ–‡ä»¶å
+                string csvFileName = Path.GetFileNameWithoutExtension(excelFilePath) + ".csv";
 
-            // Æ´½ÓCSVÎÄ¼şÂ·¾¶
-            string csvFilePath = Path.Combine(csvFolderPath, csvFileName);
-            // Éú³ÉCSVÎÄ¼şÃû
-            var fileName = Path.GetFileName(csvFileName).Replace(".csv", "");
-            // ½«ExcelÎÄ¼ş×ª»»ÎªCSVÎÄ¼ş
-            ExcelToCSV(excelFilePath, csvFilePath);
-            //Unity±à¼­Æ÷ÎÄ¼şË¢ĞÂ
-            AssetDatabase.Refresh();
-            // µÈ´ı CSV ÎÄ¼şÉú³ÉÍê±Ï
-            GenerateCSharpScript("CSV" + "/" + fileName, csFolderPath, fileName + "CSV", nameSpaceStr);
-
+                // æ‹¼æ¥CSVæ–‡ä»¶è·¯å¾„
+                string csvFilePath = Path.Combine(csvFolderPath, csvFileName);
+                // è·å–CSVæ–‡ä»¶å
+                var fileName = Path.GetFileName(csvFileName).Replace(".csv", "");
+                
+                // å°†Excelæ–‡ä»¶è½¬æ¢ä¸ºCSVæ–‡ä»¶
+                ExcelToCSV(excelFilePath, csvFilePath);
+                
+                // ç­‰å¾… CSV æ–‡ä»¶ç”Ÿæˆåç”Ÿæˆè„šæœ¬
+                GenerateCSharpScript("CSV" + "/" + fileName, csFolderPath, fileName + "CSV", nameSpaceStr);
+                
+                successCount++;
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"è½¬æ¢æ–‡ä»¶ {Path.GetFileName(excelFilePath)} å¤±è´¥: {ex.Message}");
+                failCount++;
+            }
         }
 
-        //Unity±à¼­Æ÷ÎÄ¼şË¢ĞÂ
+        // Unityç¼–è¾‘å™¨æ–‡ä»¶åˆ·æ–° - åªåˆ·æ–°ä¸€æ¬¡ï¼Œæé«˜æ€§èƒ½
         AssetDatabase.Refresh();
 
-        Debug.Log("Excel files have been converted to CSV successfully.");
+        Debug.Log($"Excelæ–‡ä»¶è½¬æ¢å®Œæˆã€‚æˆåŠŸ: {successCount}, å¤±è´¥: {failCount}");
     }
 
     [MenuItem("KT CSV Tools/Delete All file", priority = 5)]
@@ -78,7 +88,7 @@ public class ExcelToCSVConverterEditor : EditorWindow
     {
         if (Directory.Exists(csvFolderPath))
         {
-            // É¾³ıÄ¿Â¼ÏÂµÄËùÓĞÎÄ¼şºÍ×ÓÄ¿Â¼
+            // É¾ï¿½ï¿½Ä¿Â¼ï¿½Âµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½ï¿½ï¿½Ä¿Â¼
             Directory.Delete(csvFolderPath, true);
             Debug.Log($"Deleted contents of folder {csvFolderPath}.");
         }
@@ -88,7 +98,7 @@ public class ExcelToCSVConverterEditor : EditorWindow
         }
         if (Directory.Exists(csFolderPath))
         {
-            // É¾³ıÄ¿Â¼ÏÂµÄËùÓĞÎÄ¼şºÍ×ÓÄ¿Â¼
+            // É¾ï¿½ï¿½Ä¿Â¼ï¿½Âµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½ï¿½ï¿½Ä¿Â¼
             Directory.Delete(csFolderPath, true);
             Debug.Log($"Deleted contents of folder {csFolderPath}.");
         }
@@ -96,81 +106,132 @@ public class ExcelToCSVConverterEditor : EditorWindow
         {
             Debug.LogWarning($"Folder {csFolderPath} does not exist.");
         }
-        //Unity±à¼­Æ÷ÎÄ¼şË¢ĞÂ
+        //Unityï¿½à¼­ï¿½ï¿½ï¿½Ä¼ï¿½Ë¢ï¿½ï¿½
         AssetDatabase.Refresh();
     }
     public static void ExcelToCSV(string excelFilePath, string csvFilePath)
     {
-        using (var stream = File.Open(excelFilePath, FileMode.Open, FileAccess.Read))
+        try
         {
-            using (var reader = ExcelReaderFactory.CreateReader(stream))
+            using (var stream = File.Open(excelFilePath, FileMode.Open, FileAccess.Read))
             {
-                // »ñÈ¡±í¸ñÊı¾İ
-                var dataSet = reader.AsDataSet(new ExcelDataSetConfiguration
+                using (var reader = ExcelReaderFactory.CreateReader(stream))
                 {
-                    ConfigureDataTable = _ => new ExcelDataTableConfiguration
+                    // è·å–æ•°æ®é›†
+                    var dataSet = reader.AsDataSet(new ExcelDataSetConfiguration
                     {
-                        //ÎªfalseµÄ»°£¬»á×Ô¶¯Éú³ÉÁĞÃû£¬xlsl¿É¼ûµÄµÚÒ»ĞĞ½«»á±ä³ÉÊµ¼ÊµÄµÚ¶şĞĞÊı¾İ
-                        UseHeaderRow = true // Ê¹ÓÃµÚÒ»ĞĞ×÷ÎªÁĞÃû£¬²»×Ô¶¯²úÉúÁĞÃû£¬½«xlsl±í¸ñÖĞµÄ¿É¼ûµÚÒ»ĞĞ×÷ÎªÁĞÃû
-                    }
-                });
+                        ConfigureDataTable = _ => new ExcelDataTableConfiguration
+                        {
+                            // ä¸ºfalseçš„è¯ä¼šè‡ªåŠ¨æ·»åŠ ç¬¬ä¸€è¡Œï¼Œxlslå¯è§çš„ç¬¬ä¸€è¡Œå°±å˜æˆå®é™…çš„ç¬¬äºŒè¡Œäº†
+                            UseHeaderRow = true // ä½¿ç”¨ç¬¬ä¸€è¡Œä½œä¸ºåˆ—åï¼Œè‡ªåŠ¨è¯†åˆ«è¡¨å¤´ï¼Œæ‰€ä»¥xlslè¡¨æ ¼ä¸­çš„å¯è§ç¬¬ä¸€è¡Œä½œä¸ºè¡¨å¤´
+                        }
+                    });
 
-                var table = dataSet.Tables[0];
+                    var table = dataSet.Tables[0];
 
-                // »ñÈ¡ÁĞÃû//Excel±í¸ñÊı¾İÃèÊö¿ÉÒÔÌîĞ´ÔÚ{}ÖĞ£¬ÏÂÃæ»á×Ô¶¯ÌŞ³ı{}ÖĞµÄÊı¾İ
-                //var columns = table.Columns.Cast<DataColumn>().Select(column => Regex.Replace(column.ColumnName, @"{[^}]*}", "")).ToList();
-                var columns = table.Columns.Cast<DataColumn>().Select(column =>
-                {
-                    var columnName = column.ColumnName;
-                    var startIndex = columnName.IndexOf('{');
-                    var endIndex = columnName.LastIndexOf('}');
-                    if (startIndex >= 0 && endIndex >= 0 && startIndex < endIndex)
+                    // è·å–åˆ—å // Excelè¡¨æ ¼ä¸­å¯ä»¥åœ¨åˆ—ååé¢å†™å¤‡æ³¨åœ¨{}ä¸­ï¼Œä¼šè¢«è‡ªåŠ¨å‰”é™¤{}ä¸­çš„å†…å®¹
+                    var columns = table.Columns.Cast<DataColumn>().Select(column =>
                     {
-                        columnName = columnName.Remove(startIndex, endIndex - startIndex + 1);
-                    }
-                    columnName = Regex.Replace(columnName, @"[\r\n]+", "");
-                    return columnName;
-                }).ToList();
+                        var columnName = column.ColumnName;
+                        // ç§»é™¤å¤§æ‹¬å·åŠå…¶å†…å®¹
+                        var startIndex = columnName.IndexOf('{');
+                        var endIndex = columnName.LastIndexOf('}');
+                        if (startIndex >= 0 && endIndex >= 0 && startIndex < endIndex)
+                        {
+                            columnName = columnName.Remove(startIndex, endIndex - startIndex + 1);
+                        }
+                        // ç§»é™¤æ¢è¡Œç¬¦
+                        columnName = Regex.Replace(columnName, @"[\r\n]+", "");
+                        return columnName;
+                    }).ToList();
 
-                // Ğ´ÈëCSVÎÄ¼ş
-                using (var writer = new StreamWriter(csvFilePath))
-                {
-                    // Ğ´Èë±íÍ·
-                    writer.WriteLine(string.Join(",", columns));
-
-                    // Ğ´ÈëÊı¾İ
-                    foreach (DataRow row in table.Rows)
+                    // å†™å…¥CSVæ–‡ä»¶
+                    using (var writer = new StreamWriter(csvFilePath, false, Encoding.UTF8))
                     {
-                        var fields = row.ItemArray.Select(field => field.ToString()).ToArray();
-                        writer.WriteLine(string.Join(",", fields));
+                        // å†™å…¥è¡¨å¤´
+                        writer.WriteLine(string.Join(",", columns.Select(c => EscapeCsvField(c))));
+
+                        // å†™å…¥æ•°æ®
+                        foreach (DataRow row in table.Rows)
+                        {
+                            var fields = row.ItemArray.Select(field => EscapeCsvField(field?.ToString() ?? "")).ToArray();
+                            writer.WriteLine(string.Join(",", fields));
+                        }
                     }
                 }
             }
         }
-
+        catch (IOException ex)
+        {
+            throw new IOException($"æ— æ³•æ‰“å¼€æˆ–è¯»å–æ–‡ä»¶ {Path.GetFileName(excelFilePath)}ã€‚è¯·ç¡®ä¿æ–‡ä»¶æœªè¢«å…¶ä»–ç¨‹åºå ç”¨ã€‚è¯¦ç»†é”™è¯¯: {ex.Message}", ex);
+        }
+        catch (Exception ex)
+        {
+            throw new Exception($"å¤„ç†æ–‡ä»¶ {Path.GetFileName(excelFilePath)} æ—¶å‘ç”Ÿé”™è¯¯: {ex.Message}", ex);
+        }
+    }
+    
+    /// <summary>
+    /// æŒ‰ç…§RFC 4180æ ‡å‡†è½¬ä¹‰CSVå­—æ®µ
+    /// </summary>
+    private static string EscapeCsvField(string field)
+    {
+        if (string.IsNullOrEmpty(field))
+            return "";
+            
+        // å¦‚æœå­—æ®µåŒ…å«é€—å·ã€å¼•å·ã€æ¢è¡Œç¬¦æˆ–å›è½¦ç¬¦ï¼Œéœ€è¦ç”¨å¼•å·åŒ…è£¹å¹¶è½¬ä¹‰å†…éƒ¨å¼•å·
+        if (field.Contains(",") || field.Contains("\"") || field.Contains("\n") || field.Contains("\r"))
+        {
+            // å°†å­—æ®µä¸­çš„å¼•å·æ›¿æ¢ä¸ºä¸¤ä¸ªå¼•å·ï¼ˆCSVè½¬ä¹‰è§„åˆ™ï¼‰
+            return "\"" + field.Replace("\"", "\"\"") + "\"";
+        }
+        return field;
     }
 
-    // Éú³ÉC#½Å±¾ÓÃÓÚ¶ÁÈ¡CSVÊı¾İ
+    // ç”ŸæˆC#è„šæœ¬ç”¨äºè¯»å–CSVæ•°æ®
     private static void GenerateCSharpScript(string csvFilePath, string csharpOutputFolderPath, string className, string namespaceName)
     {
-        // ¶ÁÈ¡CSVÎÄ¼şµÄÊı¾İ
-        //var csvData = File.ReadAllText(csvFilePath);
+        // è·å–CSVæ–‡ä»¶å†…å®¹
         var csvTextAsset = Resources.Load<TextAsset>(csvFilePath);
      
-        Debug.Log($"{csvFilePath}£ºcsvTextAsset:{csvTextAsset}Îª¿Õ£º{csvTextAsset==null}");
+        if (csvTextAsset == null)
+        {
+            Debug.LogError($"æ— æ³•åŠ è½½CSVæ–‡ä»¶: {csvFilePath}ï¼Œè¯·ç¡®ä¿æ–‡ä»¶å·²æ­£ç¡®ç”Ÿæˆã€‚");
+            return;
+        }
+        
         var csvData = csvTextAsset.text;
         var csvRows = csvData.Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
 
-        // ÌáÈ¡ÁĞÃûºÍĞĞÊı¾İ
-        var columnNameList = csvRows[0].Split(',');
-        var rowList = new List<string[]>();
-        for (int i = 1; i < csvRows.Length; i++)
+        if (csvRows.Length == 0)
         {
-            var row = csvRows[i].Split(',');
-            rowList.Add(row);
+            Debug.LogError($"CSVæ–‡ä»¶ {csvFilePath} ä¸ºç©ºã€‚");
+            return;
         }
 
-        // Éú³ÉC#ÀàµÄ´úÂë
+        // è·å–åˆ—åå’Œæ•°æ®è¡Œ
+        var columnNameList = csvRows[0].Split(',');
+        
+        // éªŒè¯åˆ—å
+        for (int i = 0; i < columnNameList.Length; i++)
+        {
+            columnNameList[i] = SanitizeIdentifier(columnNameList[i].Trim());
+            if (string.IsNullOrEmpty(columnNameList[i]))
+            {
+                Debug.LogError($"CSVæ–‡ä»¶ {csvFilePath} çš„ç¬¬ {i + 1} åˆ—åˆ—åä¸ºç©ºæˆ–æ— æ•ˆã€‚");
+                return;
+            }
+        }
+        
+        // éªŒè¯ç±»å
+        className = SanitizeIdentifier(className);
+        if (string.IsNullOrEmpty(className))
+        {
+            Debug.LogError($"ç”Ÿæˆçš„ç±»åæ— æ•ˆ: {className}");
+            return;
+        }
+
+        // ç”ŸæˆC#ç±»çš„ä»£ç 
         var sb = new StringBuilder();
         sb.AppendLine($"using System;");
         sb.AppendLine($"using System.Collections.Generic;");
@@ -186,40 +247,168 @@ public class ExcelToCSVConverterEditor : EditorWindow
             sb.AppendLine($"\t\tpublic string {fieldName} {{ get;  set; }}");
         }
         sb.AppendLine("\t}");
+        
         sb.AppendLine($"\tpublic class {className}Load");
         sb.AppendLine("\t{");
-        sb.AppendLine($"\t\tpublic static {className} {className.ToLower()}=new {className}();");
         sb.AppendLine($"\t\tstatic string filePath = \"CSV/{className.Replace("CSV","")}\";");
+        sb.AppendLine($"\t\tprivate static Dictionary<string, {className}> cache = null;");
+        sb.AppendLine();
+        
+        // ç”ŸæˆLoadæ–¹æ³• - ä¿®å¤å•ä¾‹bugï¼Œæ¯æ¬¡è¿”å›æ–°å®ä¾‹æˆ–ç¼“å­˜çš„å®ä¾‹
         sb.AppendLine($"\t\tpublic static {className} Load(string id)");
         sb.AppendLine("\t\t{");
+        sb.AppendLine("\t\t\tif (cache == null)");
+        sb.AppendLine("\t\t\t{");
+        sb.AppendLine("\t\t\t\tcache = new Dictionary<string, {className}>();");
+        sb.AppendLine("\t\t\t\tLoadAllData();");
+        sb.AppendLine("\t\t\t}");
+        sb.AppendLine();
+        sb.AppendLine("\t\t\tif (cache.TryGetValue(id, out var result))");
+        sb.AppendLine("\t\t\t{");
+        sb.AppendLine("\t\t\t\treturn result;");
+        sb.AppendLine("\t\t\t}");
+        sb.AppendLine();
+        sb.AppendLine("\t\t\treturn null;");
+        sb.AppendLine("\t\t}");
+        sb.AppendLine();
+        
+        // ç”ŸæˆLoadAllDataæ–¹æ³• - ä¸€æ¬¡æ€§åŠ è½½æ‰€æœ‰æ•°æ®åˆ°ç¼“å­˜
+        sb.AppendLine("\t\tprivate static void LoadAllData()");
+        sb.AppendLine("\t\t{");
         sb.AppendLine("\t\t\tvar csvTextAsset = Resources.Load<TextAsset>(filePath);");
+        sb.AppendLine("\t\t\tif (csvTextAsset == null)");
+        sb.AppendLine("\t\t\t{");
+        sb.AppendLine("\t\t\t\tDebug.LogError($\"æ— æ³•åŠ è½½CSVæ–‡ä»¶: {filePath}\");");
+        sb.AppendLine("\t\t\t\treturn;");
+        sb.AppendLine("\t\t\t}");
+        sb.AppendLine();
         sb.AppendLine("\t\t\tvar csvData = csvTextAsset.text;");
         sb.AppendLine("\t\t\tvar csvRows = csvData.Split(new char[] { '\\r', '\\n' }, StringSplitOptions.RemoveEmptyEntries);");
-        sb.AppendLine("\t\t\t//ÅĞ¶ÏÄÄÒ»ĞĞµÄidÓëkeyÏàÆ¥Åä");
+        sb.AppendLine();
+        sb.AppendLine("\t\t\t// åˆ¤æ–­å“ªä¸€è¡Œçš„idä¸keyç›¸åŒ¹é…");
         sb.AppendLine("\t\t\tfor (int i = 1; i < csvRows.Length; i++)");
         sb.AppendLine("\t\t\t{");
-        sb.AppendLine($"\t\t\t\tvar row = csvRows[i].Split(',');");
-        sb.AppendLine("\t\t\t\tif (row[0] == id)");
-        sb.AppendLine("\t\t\t\t{");
-        sb.AppendLine("\t\t\t\t\t//½«ÕâÒ»ĞĞ¸³¸øheroCSV");
+        sb.AppendLine("\t\t\t\tvar row = ParseCsvLine(csvRows[i]);");
+        sb.AppendLine("\t\t\t\tif (row.Length < " + columnNameList.Length + ") continue;");
+        sb.AppendLine();
+        sb.AppendLine($"\t\t\t\tvar data = new {className}();");
+        
+        // ç”Ÿæˆå­—æ®µèµ‹å€¼
         for (int j = 0; j < columnNameList.Length; j++)
         {
             var columnName = columnNameList[j];
             var fieldName = char.ToUpper(columnName[0]) + columnName.Substring(1);
-            sb.AppendLine($"\t\t\t\t{className.ToLower()}.{fieldName} = row[{j}];");
+            sb.AppendLine($"\t\t\t\tdata.{fieldName} = row[{j}];");
         }
-        sb.AppendLine("\t\t\t\tbreak;");
+        
+        sb.AppendLine("\t\t\t\tcache[row[0]] = data;");
+        sb.AppendLine("\t\t\t}");
+        sb.AppendLine("\t\t}");
+        sb.AppendLine();
+        
+        // æ·»åŠ CSVè§£æè¾…åŠ©æ–¹æ³•ï¼Œæ”¯æŒå¼•å·åŒ…è£¹çš„å­—æ®µ
+        sb.AppendLine("\t\tprivate static string[] ParseCsvLine(string line)");
+        sb.AppendLine("\t\t{");
+        sb.AppendLine("\t\t\tvar result = new List<string>();");
+        sb.AppendLine("\t\t\tvar field = new StringBuilder();");
+        sb.AppendLine("\t\t\tbool inQuotes = false;");
+        sb.AppendLine();
+        sb.AppendLine("\t\t\tfor (int i = 0; i < line.Length; i++)");
+        sb.AppendLine("\t\t\t{");
+        sb.AppendLine("\t\t\t\tchar c = line[i];");
+        sb.AppendLine();
+        sb.AppendLine("\t\t\t\tif (c == '\"')");
+        sb.AppendLine("\t\t\t\t{");
+        sb.AppendLine("\t\t\t\t\t// æ£€æŸ¥æ˜¯å¦æ˜¯è½¬ä¹‰çš„å¼•å·");
+        sb.AppendLine("\t\t\t\t\tif (inQuotes && i + 1 < line.Length && line[i + 1] == '\"')");
+        sb.AppendLine("\t\t\t\t\t{");
+        sb.AppendLine("\t\t\t\t\t\tfield.Append('\"');");
+        sb.AppendLine("\t\t\t\t\t\ti++; // è·³è¿‡ä¸‹ä¸€ä¸ªå¼•å·");
+        sb.AppendLine("\t\t\t\t\t}");
+        sb.AppendLine("\t\t\t\t\telse");
+        sb.AppendLine("\t\t\t\t\t{");
+        sb.AppendLine("\t\t\t\t\t\tinQuotes = !inQuotes;");
+        sb.AppendLine("\t\t\t\t\t}");
+        sb.AppendLine("\t\t\t\t}");
+        sb.AppendLine("\t\t\t\telse if (c == ',' && !inQuotes)");
+        sb.AppendLine("\t\t\t\t{");
+        sb.AppendLine("\t\t\t\t\tresult.Add(field.ToString());");
+        sb.AppendLine("\t\t\t\t\tfield.Clear();");
+        sb.AppendLine("\t\t\t\t}");
+        sb.AppendLine("\t\t\t\telse");
+        sb.AppendLine("\t\t\t\t{");
+        sb.AppendLine("\t\t\t\t\tfield.Append(c);");
         sb.AppendLine("\t\t\t\t}");
         sb.AppendLine("\t\t\t}");
-        sb.AppendLine($"\t\t\treturn {className.ToLower()};");
+        sb.AppendLine();
+        sb.AppendLine("\t\t\tresult.Add(field.ToString());");
+        sb.AppendLine("\t\t\treturn result.ToArray();");
         sb.AppendLine("\t\t}");
-
+        
         sb.AppendLine("\t}");
         sb.AppendLine("}");
 
-        // ±£´æC#ÀàµÄ´úÂë
+        // ä¿å­˜C#ç±»çš„ä»£ç 
         var csharpFilePath = Path.Combine(csharpOutputFolderPath, className + ".cs");
-        File.WriteAllText(csharpFilePath, sb.ToString());
+        File.WriteAllText(csharpFilePath, sb.ToString(), Encoding.UTF8);
+    }
+    
+    /// <summary>
+    /// æ¸…ç†å’ŒéªŒè¯æ ‡è¯†ç¬¦ï¼Œç¡®ä¿ç¬¦åˆC#å‘½åè§„åˆ™
+    /// </summary>
+    private static string SanitizeIdentifier(string identifier)
+    {
+        if (string.IsNullOrWhiteSpace(identifier))
+            return "";
+            
+        // ç§»é™¤ç©ºç™½å­—ç¬¦
+        identifier = identifier.Trim();
+        
+        // æ›¿æ¢ä¸åˆæ³•çš„å­—ç¬¦ä¸ºä¸‹åˆ’çº¿
+        var sb = new StringBuilder();
+        for (int i = 0; i < identifier.Length; i++)
+        {
+            char c = identifier[i];
+            if (i == 0)
+            {
+                // é¦–å­—ç¬¦å¿…é¡»æ˜¯å­—æ¯æˆ–ä¸‹åˆ’çº¿
+                if (char.IsLetter(c) || c == '_')
+                    sb.Append(c);
+                else if (char.IsDigit(c))
+                    sb.Append('_').Append(c); // å¦‚æœé¦–å­—ç¬¦æ˜¯æ•°å­—ï¼Œå‰é¢åŠ ä¸‹åˆ’çº¿
+                // å…¶ä»–å­—ç¬¦å¿½ç•¥
+            }
+            else
+            {
+                // åç»­å­—ç¬¦å¯ä»¥æ˜¯å­—æ¯ã€æ•°å­—æˆ–ä¸‹åˆ’çº¿
+                if (char.IsLetterOrDigit(c) || c == '_')
+                    sb.Append(c);
+                // å…¶ä»–å­—ç¬¦å¿½ç•¥
+            }
+        }
+        
+        var result = sb.ToString();
+        
+        // æ£€æŸ¥æ˜¯å¦æ˜¯C#ä¿ç•™å…³é”®å­—
+        var keywords = new HashSet<string> 
+        { 
+            "abstract", "as", "base", "bool", "break", "byte", "case", "catch", "char", "checked",
+            "class", "const", "continue", "decimal", "default", "delegate", "do", "double", "else",
+            "enum", "event", "explicit", "extern", "false", "finally", "fixed", "float", "for",
+            "foreach", "goto", "if", "implicit", "in", "int", "interface", "internal", "is", "lock",
+            "long", "namespace", "new", "null", "object", "operator", "out", "override", "params",
+            "private", "protected", "public", "readonly", "ref", "return", "sbyte", "sealed",
+            "short", "sizeof", "stackalloc", "static", "string", "struct", "switch", "this",
+            "throw", "true", "try", "typeof", "uint", "ulong", "unchecked", "unsafe", "ushort",
+            "using", "virtual", "void", "volatile", "while"
+        };
+        
+        if (keywords.Contains(result.ToLower()))
+        {
+            result = "_" + result; // å¦‚æœæ˜¯å…³é”®å­—ï¼Œå‰é¢åŠ ä¸‹åˆ’çº¿
+        }
+        
+        return result;
     }
 
 }
