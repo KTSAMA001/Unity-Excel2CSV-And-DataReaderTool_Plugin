@@ -254,21 +254,80 @@ public class ExcelToCSVConverterEditor : EditorWindow
         sb.AppendLine($"\t\tprivate static Dictionary<string, {className}> cache = null;");
         sb.AppendLine();
         
-        // 生成Load方法 - 修复单例bug，每次返回新实例或缓存的实例
+        // 生成Load方法 - 按ID加载单条数据
+        sb.AppendLine($"\t\t/// <summary>");
+        sb.AppendLine($"\t\t/// 根据ID加载单条数据");
+        sb.AppendLine($"\t\t/// </summary>");
         sb.AppendLine($"\t\tpublic static {className} Load(string id)");
+        sb.AppendLine("\t\t{");
+        sb.AppendLine("\t\t\tEnsureDataLoaded();");
+        sb.AppendLine("\t\t\treturn cache.TryGetValue(id, out var result) ? result : null;");
+        sb.AppendLine("\t\t}");
+        sb.AppendLine();
+        
+        // 生成GetAll方法 - 获取所有数据
+        sb.AppendLine($"\t\t/// <summary>");
+        sb.AppendLine($"\t\t/// 获取所有数据");
+        sb.AppendLine($"\t\t/// </summary>");
+        sb.AppendLine($"\t\tpublic static List<{className}> GetAll()");
+        sb.AppendLine("\t\t{");
+        sb.AppendLine("\t\t\tEnsureDataLoaded();");
+        sb.AppendLine($"\t\t\treturn new List<{className}>(cache.Values);");
+        sb.AppendLine("\t\t}");
+        sb.AppendLine();
+        
+        // 生成Find方法 - 条件查询
+        sb.AppendLine($"\t\t/// <summary>");
+        sb.AppendLine($"\t\t/// 根据条件查找数据");
+        sb.AppendLine($"\t\t/// </summary>");
+        sb.AppendLine($"\t\tpublic static List<{className}> Find(System.Predicate<{className}> predicate)");
+        sb.AppendLine("\t\t{");
+        sb.AppendLine("\t\t\tEnsureDataLoaded();");
+        sb.AppendLine($"\t\t\treturn new List<{className}>(cache.Values).FindAll(predicate);");
+        sb.AppendLine("\t\t}");
+        sb.AppendLine();
+        
+        // 生成Count方法 - 获取数据总数
+        sb.AppendLine($"\t\t/// <summary>");
+        sb.AppendLine($"\t\t/// 获取数据总数");
+        sb.AppendLine($"\t\t/// </summary>");
+        sb.AppendLine("\t\tpublic static int Count()");
+        sb.AppendLine("\t\t{");
+        sb.AppendLine("\t\t\tEnsureDataLoaded();");
+        sb.AppendLine("\t\t\treturn cache.Count;");
+        sb.AppendLine("\t\t}");
+        sb.AppendLine();
+        
+        // 生成Exists方法 - 检查ID是否存在
+        sb.AppendLine($"\t\t/// <summary>");
+        sb.AppendLine($"\t\t/// 检查指定ID的数据是否存在");
+        sb.AppendLine($"\t\t/// </summary>");
+        sb.AppendLine("\t\tpublic static bool Exists(string id)");
+        sb.AppendLine("\t\t{");
+        sb.AppendLine("\t\t\tEnsureDataLoaded();");
+        sb.AppendLine("\t\t\treturn cache.ContainsKey(id);");
+        sb.AppendLine("\t\t}");
+        sb.AppendLine();
+        
+        // 生成Reload方法 - 重新加载数据
+        sb.AppendLine($"\t\t/// <summary>");
+        sb.AppendLine($"\t\t/// 重新加载数据（清除缓存并重新读取CSV）");
+        sb.AppendLine($"\t\t/// </summary>");
+        sb.AppendLine("\t\tpublic static void Reload()");
+        sb.AppendLine("\t\t{");
+        sb.AppendLine("\t\t\tcache = null;");
+        sb.AppendLine("\t\t\tEnsureDataLoaded();");
+        sb.AppendLine("\t\t}");
+        sb.AppendLine();
+        
+        // 生成EnsureDataLoaded私有方法
+        sb.AppendLine("\t\tprivate static void EnsureDataLoaded()");
         sb.AppendLine("\t\t{");
         sb.AppendLine("\t\t\tif (cache == null)");
         sb.AppendLine("\t\t\t{");
-        sb.AppendLine("\t\t\t\tcache = new Dictionary<string, {className}>();");
+        sb.AppendLine($"\t\t\t\tcache = new Dictionary<string, {className}>();");
         sb.AppendLine("\t\t\t\tLoadAllData();");
         sb.AppendLine("\t\t\t}");
-        sb.AppendLine();
-        sb.AppendLine("\t\t\tif (cache.TryGetValue(id, out var result))");
-        sb.AppendLine("\t\t\t{");
-        sb.AppendLine("\t\t\t\treturn result;");
-        sb.AppendLine("\t\t\t}");
-        sb.AppendLine();
-        sb.AppendLine("\t\t\treturn null;");
         sb.AppendLine("\t\t}");
         sb.AppendLine();
         
