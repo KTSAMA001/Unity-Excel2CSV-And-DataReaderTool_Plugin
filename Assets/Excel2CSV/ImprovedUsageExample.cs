@@ -15,12 +15,15 @@ public class ImprovedUsageExample : MonoBehaviour
         // Method 1: Direct usage (Recommended, no reflection)
         // ============================================
         
-        // 加载单条数据
-        HeroCSV hero = HeroCSVLoad.Load("1");
+        // 加载单条数据 - 使用整数ID（推荐，更自然）
+        HeroCSV hero = HeroCSVLoad.Load(1);  // int参数
         if (hero != null)
         {
             Debug.Log($"英雄名称: {hero.Name}, 技能: {hero.SKILL}");
         }
+        
+        // 也可以使用字符串ID（适用于非数字ID）
+        HeroCSV hero2 = HeroCSVLoad.Load("1");  // string参数
         
         // 获取所有数据
         List<HeroCSV> allHeroes = HeroCSVLoad.GetAll();
@@ -36,10 +39,16 @@ public class ImprovedUsageExample : MonoBehaviour
         List<HeroCSV> filteredHeroes = HeroCSVLoad.Find(h => h.SKILL.Contains("11"));
         Debug.Log($"找到 {filteredHeroes.Count} 个符合条件的英雄");
         
-        // 检查ID是否存在
-        if (HeroCSVLoad.Exists("10"))
+        // 检查ID是否存在 - 整数版本
+        if (HeroCSVLoad.Exists(10))
         {
             Debug.Log("ID为10的英雄存在");
+        }
+        
+        // 检查ID是否存在 - 字符串版本
+        if (HeroCSVLoad.Exists("测试"))
+        {
+            Debug.Log("测试英雄存在");
         }
         
         // 获取数据总数

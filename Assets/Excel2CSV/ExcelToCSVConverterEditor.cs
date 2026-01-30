@@ -254,14 +254,26 @@ public class ExcelToCSVConverterEditor : EditorWindow
         sb.AppendLine($"\t\tprivate static Dictionary<string, {className}> cache = null;");
         sb.AppendLine();
         
-        // 生成Load方法 - 按ID加载单条数据
+        // 生成Load方法 - 按ID加载单条数据（string版本）
         sb.AppendLine($"\t\t/// <summary>");
         sb.AppendLine($"\t\t/// 根据ID加载单条数据");
         sb.AppendLine($"\t\t/// </summary>");
+        sb.AppendLine($"\t\t/// <param name=\"id\">字符串类型的ID</param>");
         sb.AppendLine($"\t\tpublic static {className} Load(string id)");
         sb.AppendLine("\t\t{");
         sb.AppendLine("\t\t\tEnsureDataLoaded();");
         sb.AppendLine("\t\t\treturn cache.TryGetValue(id, out var result) ? result : null;");
+        sb.AppendLine("\t\t}");
+        sb.AppendLine();
+        
+        // 生成Load方法 - int重载版本
+        sb.AppendLine($"\t\t/// <summary>");
+        sb.AppendLine($"\t\t/// 根据ID加载单条数据（整数重载）");
+        sb.AppendLine($"\t\t/// </summary>");
+        sb.AppendLine($"\t\t/// <param name=\"id\">整数类型的ID</param>");
+        sb.AppendLine($"\t\tpublic static {className} Load(int id)");
+        sb.AppendLine("\t\t{");
+        sb.AppendLine("\t\t\treturn Load(id.ToString());");
         sb.AppendLine("\t\t}");
         sb.AppendLine();
         
@@ -298,14 +310,26 @@ public class ExcelToCSVConverterEditor : EditorWindow
         sb.AppendLine("\t\t}");
         sb.AppendLine();
         
-        // 生成Exists方法 - 检查ID是否存在
+        // 生成Exists方法 - 检查ID是否存在（string版本）
         sb.AppendLine($"\t\t/// <summary>");
         sb.AppendLine($"\t\t/// 检查指定ID的数据是否存在");
         sb.AppendLine($"\t\t/// </summary>");
+        sb.AppendLine($"\t\t/// <param name=\"id\">字符串类型的ID</param>");
         sb.AppendLine("\t\tpublic static bool Exists(string id)");
         sb.AppendLine("\t\t{");
         sb.AppendLine("\t\t\tEnsureDataLoaded();");
         sb.AppendLine("\t\t\treturn cache.ContainsKey(id);");
+        sb.AppendLine("\t\t}");
+        sb.AppendLine();
+        
+        // 生成Exists方法 - int重载版本
+        sb.AppendLine($"\t\t/// <summary>");
+        sb.AppendLine($"\t\t/// 检查指定ID的数据是否存在（整数重载）");
+        sb.AppendLine($"\t\t/// </summary>");
+        sb.AppendLine($"\t\t/// <param name=\"id\">整数类型的ID</param>");
+        sb.AppendLine("\t\tpublic static bool Exists(int id)");
+        sb.AppendLine("\t\t{");
+        sb.AppendLine("\t\t\treturn Exists(id.ToString());");
         sb.AppendLine("\t\t}");
         sb.AppendLine();
         
