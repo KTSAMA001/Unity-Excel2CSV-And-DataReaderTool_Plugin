@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Text;
 using UnityEngine;
 namespace CSV_SPACE
 {
@@ -10,32 +11,88 @@ namespace CSV_SPACE
 		public string SKILL { get;  set; }
 		public string TestData { get;  set; }
 		public string TestData2 { get;  set; }
+		public override string GetID() { return ID; }
 	}
 	public class HeroCSVLoad
 	{
-		public static HeroCSV herocsv=new HeroCSV();
-		static string filePath = "CSV/Hero";
+		private static readonly string _csvAssetPath = "CSV/Hero";
+		private static Dictionary<string, HeroCSV> _tbl;
+		private static bool _loaded;
+
 		public static HeroCSV Load(string id)
 		{
-			var csvTextAsset = Resources.Load<TextAsset>(filePath);
-			var csvData = csvTextAsset.text;
-			var csvRows = csvData.Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
-			//判断哪一行的id与key相匹配
-			for (int i = 1; i < csvRows.Length; i++)
+			TryInit();
+			HeroCSV v;
+			return _tbl.TryGetValue(id, out v) ? v : null;
+		}
+
+		public static HeroCSV Load(int id)
+		{
+			return Load(id.ToString());
+		}
+
+		public static List<HeroCSV> GetAll()
+		{
+			TryInit();
+			return new List<HeroCSV>(_tbl.Values);
+		}
+
+		public static List<HeroCSV> Find(System.Predicate<HeroCSV> predicate)
+		{
+			TryInit();
+			var all = new List<HeroCSV>(_tbl.Values);
+			return all.FindAll(predicate);
+		}
+
+		public static int Count()
+		{
+			TryInit();
+			return _tbl.Count;
+		}
+
+		public static bool Exists(string id)
+		{
+			TryInit();
+			return _tbl.ContainsKey(id);
+		}
+
+		public static bool Exists(int id)
+		{
+			return Exists(id.ToString());
+		}
+
+		public static void Reload()
+		{
+			_loaded = false;
+			_tbl = null;
+			TryInit();
+		}
+
+		private static void TryInit()
+		{
+			if (_loaded) return;
+			_tbl = new Dictionary<string, HeroCSV>();
+			var asset = Resources.Load<TextAsset>(_csvAssetPath);
+			if (asset == null)
 			{
-				var row = csvRows[i].Split(',');
-				if (row[0] == id)
-				{
-					//将这一行赋给heroCSV
-				herocsv.ID = row[0];
-				herocsv.Name = row[1];
-				herocsv.SKILL = row[2];
-				herocsv.TestData = row[3];
-				herocsv.TestData2 = row[4];
-				break;
-				}
+				Debug.LogError("CSV文件加载失败: " + _csvAssetPath);
+				_loaded = true;
+				return;
 			}
-			return herocsv;
+			var rows = asset.text.Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+			for (int ri = 1; ri < rows.Length; ri++)
+			{
+				var cells = rows[ri].Split(',');
+				if (cells.Length < 5) continue;
+				var entry = new HeroCSV();
+				entry.ID = cells[0];
+				entry.Name = cells[1];
+				entry.SKILL = cells[2];
+				entry.TestData = cells[3];
+				entry.TestData2 = cells[4];
+				_tbl[cells[0]] = entry;
+			}
+			_loaded = true;
 		}
 	}
 }

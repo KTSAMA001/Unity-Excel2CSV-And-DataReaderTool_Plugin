@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Text;
 using UnityEngine;
 namespace CSV_SPACE
 {
@@ -9,31 +10,87 @@ namespace CSV_SPACE
 		public string CN { get;  set; }
 		public string EN { get;  set; }
 		public string Effect { get;  set; }
+		public override string GetID() { return ID; }
 	}
 	public class ItemCSVLoad
 	{
-		public static ItemCSV itemcsv=new ItemCSV();
-		static string filePath = "CSV/Item";
+		private static readonly string _csvAssetPath = "CSV/Item";
+		private static Dictionary<string, ItemCSV> _tbl;
+		private static bool _loaded;
+
 		public static ItemCSV Load(string id)
 		{
-			var csvTextAsset = Resources.Load<TextAsset>(filePath);
-			var csvData = csvTextAsset.text;
-			var csvRows = csvData.Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
-			//判断哪一行的id与key相匹配
-			for (int i = 1; i < csvRows.Length; i++)
+			TryInit();
+			ItemCSV v;
+			return _tbl.TryGetValue(id, out v) ? v : null;
+		}
+
+		public static ItemCSV Load(int id)
+		{
+			return Load(id.ToString());
+		}
+
+		public static List<ItemCSV> GetAll()
+		{
+			TryInit();
+			return new List<ItemCSV>(_tbl.Values);
+		}
+
+		public static List<ItemCSV> Find(System.Predicate<ItemCSV> predicate)
+		{
+			TryInit();
+			var all = new List<ItemCSV>(_tbl.Values);
+			return all.FindAll(predicate);
+		}
+
+		public static int Count()
+		{
+			TryInit();
+			return _tbl.Count;
+		}
+
+		public static bool Exists(string id)
+		{
+			TryInit();
+			return _tbl.ContainsKey(id);
+		}
+
+		public static bool Exists(int id)
+		{
+			return Exists(id.ToString());
+		}
+
+		public static void Reload()
+		{
+			_loaded = false;
+			_tbl = null;
+			TryInit();
+		}
+
+		private static void TryInit()
+		{
+			if (_loaded) return;
+			_tbl = new Dictionary<string, ItemCSV>();
+			var asset = Resources.Load<TextAsset>(_csvAssetPath);
+			if (asset == null)
 			{
-				var row = csvRows[i].Split(',');
-				if (row[0] == id)
-				{
-					//将这一行赋给heroCSV
-				itemcsv.ID = row[0];
-				itemcsv.CN = row[1];
-				itemcsv.EN = row[2];
-				itemcsv.Effect = row[3];
-				break;
-				}
+				Debug.LogError("CSV文件加载失败: " + _csvAssetPath);
+				_loaded = true;
+				return;
 			}
-			return itemcsv;
+			var rows = asset.text.Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+			for (int ri = 1; ri < rows.Length; ri++)
+			{
+				var cells = rows[ri].Split(',');
+				if (cells.Length < 4) continue;
+				var entry = new ItemCSV();
+				entry.ID = cells[0];
+				entry.CN = cells[1];
+				entry.EN = cells[2];
+				entry.Effect = cells[3];
+				_tbl[cells[0]] = entry;
+			}
+			_loaded = true;
 		}
 	}
 }

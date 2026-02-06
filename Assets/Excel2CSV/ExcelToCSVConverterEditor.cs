@@ -235,6 +235,7 @@ public class ExcelToCSVConverterEditor : EditorWindow
         var sb = new StringBuilder();
         sb.AppendLine($"using System;");
         sb.AppendLine($"using System.Collections.Generic;");
+        sb.AppendLine($"using System.Text;");
         sb.AppendLine($"using UnityEngine;");
         sb.AppendLine($"namespace {namespaceName}");
         sb.AppendLine("{");
@@ -246,6 +247,9 @@ public class ExcelToCSVConverterEditor : EditorWindow
             var fieldName = char.ToUpper(columnName[0]) + columnName.Substring(1);
             sb.AppendLine($"\t\tpublic string {fieldName} {{ get;  set; }}");
         }
+        // 覆写GetID，返回第一列的值
+        var idPropName = char.ToUpper(columnNameList[0][0]) + columnNameList[0].Substring(1);
+        sb.AppendLine($"\t\tpublic override string GetID() {{ return {idPropName}; }}");
         sb.AppendLine("\t}");
         
         sb.AppendLine($"\tpublic class {className}Load");
